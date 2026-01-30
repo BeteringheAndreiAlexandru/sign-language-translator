@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 import pickle
 
-print("Loading data...")
 X, y = [], []
 
 for letter in os.listdir("data"):
@@ -27,10 +26,6 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y_encoded, test_size=0.2, random_state=42
 )
 
-print(f"Training samples: {len(X_train)}")
-print(f"Testing samples: {len(X_test)}")
-print(f"Classes: {len(label_encoder.classes_)}")
-
 model = models.Sequential([
     layers.Dense(128, activation='relu', input_shape=(X.shape[1],)),
     layers.Dropout(0.3),
@@ -43,8 +38,6 @@ model.compile(
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
-
-print("\nTraining model...")
 model.fit(X_train, y_train, 
           validation_data=(X_test, y_test),
           epochs=20,
@@ -58,6 +51,5 @@ with open("model/label_encoder.pkl", "wb") as f:
     pickle.dump(label_encoder, f)
 
 test_loss, test_acc = model.evaluate(X_test, y_test, verbose=0)
-print(f"\nTest accuracy: {test_acc:.2%}")
 
-print("Model saved to 'model/simple_model.h5'")
+
