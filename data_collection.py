@@ -31,11 +31,9 @@ while True:
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(rgb)
     
-    # Draw landmarks (optional - remove if not needed)
     if results.multi_hand_landmarks:
         mp_drawing.draw_landmarks(frame, results.multi_hand_landmarks[0], mp_hands.HAND_CONNECTIONS)
     
-    # Show status
     if recording:
         cv2.putText(frame, f"Recording {current_letter}: {samples_collected}/{target_samples}", 
                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -47,33 +45,28 @@ while True:
     
     key = cv2.waitKey(1) & 0xFF
     
-    # ESC to quit
     if key == 27:
         break
     
-    # Letter keys (A-Z)
     if 97 <= key <= 122 and not recording:  # a-z, only if not already recording
         current_letter = chr(key - 32)  # uppercase
         recording = True
         samples_collected = 0
     
-    # Save data while recording
     if recording and results.multi_hand_landmarks:
-        # Get landmarks
         landmarks = []
         for lm in results.multi_hand_landmarks[0].landmark:
             landmarks.extend([lm.x, lm.y, lm.z])
         
-        # Save to file
         filename = f"data/{current_letter}/{current_letter}_{samples_collected:04d}.npy"
         np.save(filename, np.array(landmarks))
         samples_collected += 1
         
-        # Stop when done
         if samples_collected >= target_samples:
             print(f"Finished {current_letter}")
             recording = False
 
 cap.release()
 cv2.destroyAllWindows()
+
 print("Done!")
