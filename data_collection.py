@@ -1,15 +1,12 @@
-# collect.py
 import cv2
 import numpy as np
 import mediapipe as mp
 import os
 
-# Setup
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(max_num_hands=1)
 mp_drawing = mp.solutions.drawing_utils
 
-# Create folders
 for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
     os.makedirs(f"data/{letter}", exist_ok=True)
 
@@ -48,8 +45,8 @@ while True:
     if key == 27:
         break
     
-    if 97 <= key <= 122 and not recording:  # a-z, only if not already recording
-        current_letter = chr(key - 32)  # uppercase
+    if 97 <= key <= 122 and not recording: 
+        current_letter = chr(key - 32) 
         recording = True
         samples_collected = 0
     
@@ -69,4 +66,5 @@ while True:
 cap.release()
 cv2.destroyAllWindows()
 
-print("Done!")
+print("Done")
+
