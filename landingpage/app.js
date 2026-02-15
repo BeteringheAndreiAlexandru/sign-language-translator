@@ -1,4 +1,30 @@
-// ---------- Camera ----------
+// Configurare WebSocket 
+const ws = new WebSocket("ws://localhost:8765");
+
+ws.onopen = () => {
+  console.log("Conectat la Backend-ul Python!");
+  addBot("Sistem conectat la serverul AI.");
+};
+
+ws.onmessage = (event) => {
+  
+  const data = JSON.parse(event.data);
+  
+  if (data.status === "success") {
+    onPrediction(data.label, data.confidence);
+  }
+};
+
+ws.onerror = (error) => {
+  console.error("Eroare WebSocket: ", error);
+  addBot("Eroare de conexiune cu serverul.");
+};
+
+
+const hiddenCanvas = document.createElement("canvas");
+const hiddenCtx = hiddenCanvas.getContext("2d", { willReadFrequently: true });
+
+
 const video = document.getElementById("video");
 const btnStart = document.getElementById("btnStart");
 const btnStop = document.getElementById("btnStop");
@@ -18,20 +44,20 @@ let frames = 0;
 
 function setCamUI(on){
   if(on){
-    statusText.textContent = "Camera pornită";
+    statusText.textContent = "Camera pornita";
     statusDot.style.background = "#22c55e";
     statusDot.style.boxShadow = "0 0 0 4px rgba(34,197,94,.18)";
     cameraBadge.textContent = "Live";
     btnStop.disabled = false;
     btnToggleRecognize.disabled = false;
   }else{
-    statusText.textContent = "Camera oprită";
+    statusText.textContent = "Camera oprita";
     statusDot.style.background = "#f59e0b";
     statusDot.style.boxShadow = "0 0 0 4px rgba(245,158,11,.15)";
     cameraBadge.textContent = "Idle";
     btnStop.disabled = true;
     btnToggleRecognize.disabled = true;
-    btnToggleRecognize.textContent = "Start “Recunoaștere”";
+    btnToggleRecognize.textContent = "Start “Recunoastere”";
   }
 }
 
@@ -61,7 +87,7 @@ function stopCamera(){
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
 
-// ---------- Fake recognition loop (UI demo) ----------
+
 const signOut = document.getElementById("signOut");
 const confOut = document.getElementById("confOut");
 const sentenceOut = document.getElementById("sentenceOut");
@@ -69,14 +95,11 @@ const sentenceOut = document.getElementById("sentenceOut");
 let sentence = "";
 let lastEmit = 0;
 
-const fakeLabels = ["HELLO", "YES", "NO", "THANK YOU", "PLEASE", "I", "YOU", "HELP", "WATER", "WHERE"];
-function randomPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function randomConf(){ return (0.70 + Math.random()*0.29).toFixed(4); }
-
 function startRecognitionLoop(){
   recognizing = true;
-  btnToggleRecognize.textContent = "Stop “Recunoaștere”";
-  lastT = performance.now(); frames = 0;
+  btnToggleRecognize.textContent = "Stop “Recunoastere”";
+  lastT = performance.now(); 
+  frames = 0;
   loop();
 }
 
@@ -90,7 +113,7 @@ function stopRecognitionLoop(){
 function loop(){
   rafId = requestAnimationFrame(loop);
 
-  // fps update
+
   frames++;
   const now = performance.now();
   if(now - lastT >= 1000){
@@ -100,15 +123,25 @@ function loop(){
     frames = 0;
   }
 
-  // every ~1.2s emit a fake prediction (ONLY as demo)
   if(!recognizing) return;
-  if(now - lastEmit > 1200){
+  
+  
+  if(now - lastEmit > 300){
     lastEmit = now;
 
-    // ---- AICI vei conecta ieșirea modelului real ----
-    const label = randomPick(fakeLabels);
-    const conf = randomConf();
-    onPrediction(label, conf);
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        hiddenCanvas.width = video.videoWidth;
+        hiddenCanvas.height = video.videoHeight;
+
+        hiddenCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+        
+        const frameData = hiddenCanvas.toDataURL("image/jpeg", 0.5);
+        
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(frameData);
+        }
+    }
   }
 }
 
@@ -128,15 +161,12 @@ function onPrediction(label, confidence){
   signOut.textContent = label;
   confOut.textContent = confidence;
 
-  // build a sentence (foarte simplu)
+
   sentence = (sentence + " " + label).trim();
   sentenceOut.textContent = sentence;
-
-  // exemplu: auto-send (dezactivat)
-  // if(label === "HELLO") sendToChat("Detected: " + sentence);
 }
 
-// ---------- Chat UI (local demo bot) ----------
+
 const messages = document.getElementById("messages");
 const chatInput = document.getElementById("chatInput");
 const btnSend = document.getElementById("btnSend");
@@ -152,12 +182,10 @@ function addUser(text){ addMsg(text, "user"); }
 function addBot(text){ addMsg(text, "bot"); }
 
 function demoBotReply(userText){
-  // placeholder. Înlocuiește cu fetch("/api/chat", {method:"POST", body:...})
   const trimmed = userText.trim();
-  if(!trimmed) return "Spune-mi ceva 🙂";
-  if(trimmed.toLowerCase().includes("help")) return "Sigur. După ce conectezi backendul, pot răspunde real.";
-  if(trimmed.toLowerCase().includes("camera")) return "Camera este în panoul din stânga. Pornește-o și apoi recunoașterea.";
-  return "Am primit: “" + trimmed + "” (demo). Conectează backendul ca să ai răspunsuri reale.";
+  if(!trimmed) return "Spune-mi ceva ";
+  if(trimmed.toLowerCase().includes("help")) return "Sistemul este acum pregătit să primească date reale de la serverul Python.";
+  return "Am primit: “" + trimmed + "”. Poți folosi semnele recunoscute pentru a scrie aici!";
 }
 
 function sendToChat(text){
@@ -166,7 +194,6 @@ function sendToChat(text){
   addUser(t);
   chatInput.value = "";
 
-  // simulate latency
   btnSend.disabled = true;
   setTimeout(() => {
     addBot(demoBotReply(t));
@@ -180,7 +207,6 @@ chatInput.addEventListener("keydown", (e) => {
   if(e.key === "Enter") sendToChat(chatInput.value);
 });
 
-// UX: click pe textul detectat → îl pune în input
 sentenceOut.addEventListener("click", () => {
   const s = sentenceOut.textContent;
   if(s && s !== "—"){
@@ -189,5 +215,5 @@ sentenceOut.addEventListener("click", () => {
   }
 });
 
-// Init UI
+
 setCamUI(false);

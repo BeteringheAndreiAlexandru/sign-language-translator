@@ -1,12 +1,9 @@
 # requirements.txt
 
-#mediapipe==0.10.11
+mediapipe==0.10.11
 opencv-python==4.9.0.80
 tensorflow==2.15.0
 scikit-learn==1.4.0
 numpy==1.24.3
 pandas==2.1.4
 matplotlib==3.8.2
-flask==3.0.2
-flask-socketio==5.3.6
-eventlet==0.35.2
