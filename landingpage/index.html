@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Language Translator + Chat</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <span class="dot"></span>
+        <span>Sign Language Translator (Frontend) + Chat UI</span>
+        <span class="badge">doar UI + cameră</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+
+      <!-- LEFT: Camera + result -->
+      <section class="card">
+        <div class="cardHead">
+          <div class="h">📷 Cameră</div>
+          <div class="badge" id="cameraBadge">Idle</div>
+        </div>
+
+        <div class="videoArea">
+          <div class="videoFrame">
+            <video id="video" autoplay playsinline muted></video>
+
+            <div class="overlay">
+              <div class="pill">
+                <span class="statusDot" id="statusDot"></span>
+                <span id="statusText">Camera oprită</span>
+              </div>
+              <div class="pill mono" id="fpsPill">FPS: --</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="leftControls">
+              <button class="primary" id="btnStart">Pornește camera</button>
+              <button class="danger" id="btnStop" disabled>Oprește</button>
+              <button id="btnToggleRecognize" disabled>Start “Recunoaștere”</button>
+            </div>
+            <div class="rightControls">
+              <span class="hint">
+                Placeholder: aici vei pune MediaPipe/TFJS sau trimiți frame-uri la backend.
+              </span>
+            </div>
+          </div>
+
+          <div class="resultBox">
+            <div class="resultRow">
+              <div>
+                <div class="label">Semn detectat (placeholder)</div>
+                <div class="value mono" id="signOut">—</div>
+              </div>
+              <div>
+                <div class="label">Încredere (placeholder)</div>
+                <div class="value mono" id="confOut">—</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="label">Text construit (din semne)</div>
+              <div class="value mono" id="sentenceOut">—</div>
+            </div>
+
+            <div class="hint">
+              Integrare:
+              <span class="mono">onPrediction(label, confidence)</span> → adaugi la propoziție →
+              trimiți la chatbot (fetch / websocket) → afișezi răspuns.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Chat -->
+      <section class="card">
+        <div class="cardHead">
+          <div class="h">💬 Chatbot</div>
+          <div class="badge" id="chatBadge">Local demo</div>
+        </div>
+
+        <div class="chatBody">
+          <div class="messages" id="messages">
+            <div class="msg bot">
+              Salut! Sunt UI-ul chatbotului. Când vei conecta backendul, aici apar răspunsurile reale.
+            </div>
+          </div>
+
+          <div class="chatInput">
+            <input id="chatInput" type="text" placeholder="Scrie un mesaj sau folosește textul detectat..." />
+            <button class="primary" id="btnSend">Trimite</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
